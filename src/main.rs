@@ -9,7 +9,7 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyModifiers};
 
-use cycle::{Cycle, Endless, Pile, Want};
+use cycle::{Cycle, Endless, Pile, Start, Want};
 use palette::Palette;
 use rng::Rng;
 use sand::Grid;
@@ -22,11 +22,27 @@ const TICK: Duration = Duration::from_millis(33);
 const SETTLES_PER_TICK: usize = 2;
 const POUR_CAP: usize = 40;
 
+const HELP: &str = "\
+sunayama: playing with sand in your terminal
+
+    sunayama                 sand piles up, tops out, and starts over
+    sunayama --timer <dur>   fills over the time given: 90s, 25m, 1h
+
+    Space                    more sand, in the default mode only
+    q, Esc, Ctrl-C           quit
+
+colours: ~/.config/sunayama/config
+";
+
 fn main() -> io::Result<()> {
-    let period = match cycle::timer_from_args(std::env::args().skip(1)) {
-        Ok(period) => period,
+    let period = match cycle::start_from_args(std::env::args().skip(1)) {
+        Ok(Start::Pile(period)) => period,
+        Ok(Start::Help) => {
+            print!("{HELP}");
+            return Ok(());
+        }
         Err(complaint) => {
-            eprintln!("sunayama: {complaint}");
+            eprintln!("sunayama: {complaint}\nsunayama: try --help");
             std::process::exit(2);
         }
     };

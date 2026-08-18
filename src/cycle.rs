@@ -145,11 +145,17 @@ fn next_gap(rng: &mut Rng) -> Duration {
     Duration::from_millis(low + rng.below((high - low + 1) as usize) as u64)
 }
 
-/// Reads `--timer <dur>`; without it the cycle is the endless pile.
-pub fn timer_from_args(mut args: impl Iterator<Item = String>) -> Result<Option<Duration>, String> {
+pub enum Start {
+    /// The endless pile, or a timer when `--timer <dur>` was given.
+    Pile(Option<Duration>),
+    Help,
+}
+
+pub fn start_from_args(mut args: impl Iterator<Item = String>) -> Result<Start, String> {
     let mut period = None;
     while let Some(arg) = args.next() {
         match arg.as_str() {
+            "--help" | "-h" => return Ok(Start::Help),
             "--timer" => {
                 let text = args.next().ok_or("--timer wants a duration, e.g. 25m")?;
                 period = Some(parse_duration(&text)?);
@@ -157,7 +163,7 @@ pub fn timer_from_args(mut args: impl Iterator<Item = String>) -> Result<Option<
             other => return Err(format!("unknown argument {other}")),
         }
     }
-    Ok(period)
+    Ok(Start::Pile(period))
 }
 
 fn parse_duration(text: &str) -> Result<Duration, String> {
@@ -388,15 +394,35 @@ mod tests {
         assert!(parse_duration("").is_err());
     }
 
+    fn started(args: &[&str]) -> Result<Start, String> {
+        start_from_args(args.iter().map(|a| a.to_string()))
+    }
+
+    fn period_of(args: &[&str]) -> Option<Duration> {
+        match started(args).unwrap() {
+            Start::Pile(period) => period,
+            Start::Help => panic!("{args:?} asked for help"),
+        }
+    }
+
     #[test]
     fn a_timer_argument_switches_the_cycle() {
-        let args = ["--timer".to_string(), "25m".to_string()];
         assert_eq!(
-            timer_from_args(args.into_iter()).unwrap(),
+            period_of(&["--timer", "25m"]),
             Some(Duration::from_secs(1500))
         );
-        assert_eq!(timer_from_args(std::iter::empty()).unwrap(), None);
-        assert!(timer_from_args(["--timer".to_string()].into_iter()).is_err());
-        assert!(timer_from_args(["--wat".to_string()].into_iter()).is_err());
+        assert_eq!(period_of(&[]), None);
+        assert!(started(&["--timer"]).is_err());
+        assert!(started(&["--wat"]).is_err());
+    }
+
+    #[test]
+    fn help_is_asked_for_the_usual_two_ways() {
+        assert!(matches!(started(&["--help"]).unwrap(), Start::Help));
+        assert!(matches!(started(&["-h"]).unwrap(), Start::Help));
+        assert!(
+            matches!(started(&["--timer", "25m", "--help"]).unwrap(), Start::Help),
+            "--help should win over anything else on the line"
+        );
     }
 }
