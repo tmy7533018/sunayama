@@ -1,0 +1,14 @@
+/target
+
+# nix build output symlink
+result
+result-*
+
+# Claude Code local settings
+.claude/
+CLAUDE.md
+
+# Personal scratchpad
+DESIGN.md
+TODO.md
+note.txt
