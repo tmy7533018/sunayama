@@ -1,0 +1,14 @@
+; Copy this to ~/.config/sunayama/config and edit it.
+; Every key is optional; delete a line to go back to the default.
+
+[color]
+gradient_count = 3
+gradient_color_1 = '#9a744a'
+gradient_color_2 = '#c89355'
+gradient_color_3 = '#e3ba76'
+
+; The fourth colour defaults to white. Raise gradient_count to 4 to change it.
+; gradient_color_4 = '#ffffff'
+
+; Colours can live in their own file. The path is relative to this one.
+; theme = 'sand.conf'
