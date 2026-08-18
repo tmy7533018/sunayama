@@ -31,7 +31,7 @@ cargo install --git https://github.com/tmy7533018/sunayama
 Nix:
 
 ```sh
-nix run github:tmy7533018/sunayama
+nix profile install github:tmy7533018/sunayama
 ```
 
 ## Features
