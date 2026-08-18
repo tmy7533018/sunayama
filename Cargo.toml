@@ -1,6 +1,6 @@
 [package]
 name = "sunayama"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 description = "Playing with sand in your terminal"
 repository = "https://github.com/tmy7533018/sunayama"
