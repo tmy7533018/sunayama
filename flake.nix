@@ -1,5 +1,5 @@
 {
-  description = "sunayama — playing with sand in your terminal";
+  description = "sunayama: playing with sand in your terminal";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
