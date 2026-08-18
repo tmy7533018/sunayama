@@ -5,6 +5,7 @@ mod sand;
 mod term;
 
 use std::io::{self, BufWriter};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyModifiers};
@@ -34,6 +35,22 @@ sunayama: playing with sand in your terminal
 colours: ~/.config/sunayama/config
 ";
 
+static RELOAD: AtomicBool = AtomicBool::new(false);
+
+extern "C" fn mark_reload(_: libc::c_int) {
+    RELOAD.store(true, Ordering::Relaxed);
+}
+
+/// A colour generator repaints a running pile with `pkill -USR1 sunayama`.
+fn listen_for_reload() {
+    unsafe {
+        libc::signal(
+            libc::SIGUSR1,
+            mark_reload as *const () as libc::sighandler_t,
+        )
+    };
+}
+
 fn main() -> io::Result<()> {
     let period = match cycle::start_from_args(std::env::args().skip(1)) {
         Ok(Start::Pile(period)) => period,
@@ -47,7 +64,7 @@ fn main() -> io::Result<()> {
         }
     };
 
-    let grains = match palette::load() {
+    let mut grains = match palette::load() {
         Ok(grains) => grains,
         Err(complaint) => {
             eprintln!("sunayama: {complaint}");
@@ -62,6 +79,8 @@ fn main() -> io::Result<()> {
         );
     }
     let bg = bg.unwrap_or(Rgb::new(0, 0, 0));
+
+    listen_for_reload();
 
     let _screen = Screen::enter()?;
     let mut out = BufWriter::new(io::stdout());
@@ -92,8 +111,12 @@ fn main() -> io::Result<()> {
         let deadline = next.max(Instant::now());
 
         while let Some(wait) = deadline.checked_duration_since(Instant::now()) {
-            if !event::poll(wait)? {
-                break;
+            match event::poll(wait) {
+                Ok(true) => {}
+                Ok(false) => break,
+                // A signal cuts the wait short; the tick carries on regardless.
+                Err(error) if error.kind() == io::ErrorKind::Interrupted => break,
+                Err(error) => return Err(error),
             }
             match event::read()? {
                 Event::Key(key) if quits(&key) => return Ok(()),
@@ -112,6 +135,13 @@ fn main() -> io::Result<()> {
             }
         }
         next = deadline;
+
+        if RELOAD.swap(false, Ordering::Relaxed)
+            && let Ok(fresh) = palette::load()
+        {
+            grains = fresh;
+            palette = Palette::new(grains, bg, grid.rows());
+        }
 
         let full = sand::pile_full(grid.cols(), grid.rows());
         let pile = Pile {
