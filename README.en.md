@@ -15,6 +15,13 @@
   </tr>
 </table>
 
+Rebuilt as a standalone terminal app from something I made for [mugen-shell](https://github.com/tmy7533018/mugen-shell)'s
+lock screen. One of three that grew out of the same place.
+
+- [sunayama](https://github.com/tmy7533018/sunayama): playing with sand in your terminal
+- [tsukimi](https://github.com/tmy7533018/tsukimi): moon phases and a starfield
+- [hitodama](https://github.com/tmy7533018/hitodama): a glowing orb that lives in your terminal
+
 ## Install
 
 ```sh

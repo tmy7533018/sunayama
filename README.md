@@ -15,6 +15,13 @@
   </tr>
 </table>
 
+[mugen-shell](https://github.com/tmy7533018/mugen-shell) のロック画面で作ったものを、
+独立したターミナルアプリとして作り直しました。同じところから生まれた 3 つのうちのひとつです。
+
+- [sunayama](https://github.com/tmy7533018/sunayama): ターミナルで砂遊び
+- [tsukimi](https://github.com/tmy7533018/tsukimi): 月の満ち欠けと星空
+- [hitodama](https://github.com/tmy7533018/hitodama): ターミナルペットの光る玉
+
 ## インストール
 
 ```sh
